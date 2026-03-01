@@ -2,13 +2,1270 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>欢迎来到小艺.fun</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级动效渲染版UI布局</title>
     <style>
-        body { text-align: center; margin-top: 100px; font-size: 24px; }
+        /* 全局样式重置 + 基础配置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            /* 主色调 */
+            --primary: #1677ff;
+            /* 辅助色 */
+            --secondary: #722ed1;
+            /* 中性色 */
+            --bg-main: #f5f7fa;
+            --bg-card: #ffffff;
+            --text-primary: #1d2129;
+            --text-secondary: #4e5969;
+            --text-placeholder: #86909c;
+            /* 阴影层级 */
+            --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.12);
+            /* 过渡曲线 */
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        /* 整体容器 */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0 16px;
+        }
+
+        /* ======================================
+           1. 顶部导航区（悬浮吸顶+光影渲染+hover动效）
+           ====================================== */
+        .top-nav {
+            height: 72px;
+            background: var(--bg-card);
+            border-radius: 0 0 16px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-1);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            /* 渲染：渐变背景+内阴影 */
+            background: linear-gradient(180deg, #fff, #fafafa);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            transition: all 0.4s var(--ease-smooth);
+        }
+
+        .top-nav:hover {
+            box-shadow: var(--shadow-2);
+            transform: translateY(-2px);
+        }
+
+        /* 1-1 品牌Logo区 */
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 0.3s var(--ease-smooth);
+        }
+
+        .nav-logo:hover .logo-icon {
+            transform: rotate(10deg) scale(1.05);
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* 1-2 主导航菜单 */
+        .nav-menu {
+            display: flex;
+            gap: 32px;
+        }
+
+        .menu-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 0;
+            position: relative;
+            transition: color 0.3s var(--ease-smooth);
+        }
+
+        .menu-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s var(--ease-smooth);
+        }
+
+        .menu-item:hover {
+            color: var(--primary);
+        }
+
+        .menu-item:hover::after {
+            width: 100%;
+        }
+
+        .menu-item.active {
+            color: var(--primary);
+        }
+
+        .menu-item.active::after {
+            width: 100%;
+        }
+
+        /* 1-3 功能操作区 */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box {
+            width: 240px;
+            height: 40px;
+            background: #f0f2f5;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .search-box:hover {
+            background: #e5e7eb;
+            width: 260px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-icon {
+            color: var(--text-placeholder);
+            font-size: 14px;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 500;
+            border: 2px solid #fff;
+            box-shadow: var(--shadow-1);
+            transition: all 0.3s var(--ease-smooth);
+            cursor: pointer;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-2);
+        }
+
+        /* ======================================
+           2. 核心内容区（分栏布局+分层渲染+高级动效）
+           ====================================== */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        /* 2-1 主内容区（70%宽度） */
+        .main-content {
+            flex: 7;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 2-1-1 焦点轮播区（视差悬浮+渐变遮罩+缩放动效） */
+        .banner-carousel {
+            height: 320px;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-2);
+            background: linear-gradient(180deg, #f0f4f8, #e9ecef);
+            transition: all 0.4s var(--ease-smooth);
+        }
+
+        .banner-carousel:hover {
+            box-shadow: var(--shadow-3);
+            transform: translateY(-4px);
+        }
+
+        .carousel-item {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(22, 119, 255, 0.8), rgba(114, 46, 209, 0.8)), url('https://picsum.photos/1400/600') no-repeat center;
+            background-size: cover;
+            color: #fff;
+            position: relative;
+        }
+
+        .carousel-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0,0,0,0.4), transparent);
+            z-index: 1;
+        }
+
+        .carousel-info {
+            z-index: 2;
+            max-width: 500px;
+            transform: translateX(0);
+            transition: transform 0.5s var(--ease-smooth);
+        }
+
+        .banner-carousel:hover .carousel-info {
+            transform: translateX(10px);
+        }
+
+        .carousel-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .carousel-title {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 16px;
+        }
+
+        .carousel-desc {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+
+        .carousel-btn {
+            padding: 12px 24px;
+            background: #fff;
+            color: var(--primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .carousel-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(22, 119, 255, 0.3);
+        }
+
+        .carousel-img {
+            z-index: 2;
+            width: 280px;
+            height: 280px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: scale(1) rotate(0);
+            transition: all 0.5s var(--ease-smooth);
+        }
+
+        .banner-carousel:hover .carousel-img {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .carousel-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 3;
+        }
+
+        .dot-item {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .dot-item.active {
+            width: 28px;
+            border-radius: 5px;
+            background: #fff;
+        }
+
+        .dot-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 2-1-2 分类功能卡片区（3D悬浮+渐变背景+缩放动效） */
+        .category-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .category-card {
+            height: 160px;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #fff;
+            text-decoration: none;
+            box-shadow: var(--shadow-2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s var(--ease-smooth);
+            /* 3D渲染基础 */
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.2));
+            z-index: 1;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .category-card:nth-child(1) {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52) no-repeat center;
+            background-size: cover;
+        }
+
+        .category-card:nth-child(2) {
+            background: linear-gradient(135deg, #4ecdc4, #45b7aa) no-repeat center;
+            background-size: cover;
+        }
+
+        .category-card:nth-child(3) {
+            background: linear-gradient(135deg, #45b7d1, #38a1db) no-repeat center;
+            background-size: cover;
+        }
+
+        .category-card:nth-child(4) {
+            background: linear-gradient(135deg, #96ceb4, #82ca9d) no-repeat center;
+            background-size: cover;
+        }
+
+        .category-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-3);
+        }
+
+        .category-card:hover::before {
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            backdrop-filter: blur(4px);
+            z-index: 2;
+            transition: transform 0.3s var(--ease-smooth);
+        }
+
+        .category-card:hover .card-icon {
+            transform: translateY(-5px) rotate(5deg);
+        }
+
+        .card-info {
+            z-index: 2;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* 2-1-3 精选内容列表区（滑入动效+hover浮层+光影变化） */
+        .content-list-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-1);
+            transition: box-shadow 0.3s var(--ease-smooth);
+        }
+
+        .content-list-section:hover {
+            box-shadow: var(--shadow-2);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            position: relative;
+            padding-left: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .section-more {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .section-more:hover {
+            color: var(--secondary);
+            transform: translateX(4px);
+        }
+
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-item {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            transition: all 0.3s var(--ease-smooth);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .content-item:last-child {
+            border-bottom: none;
+        }
+
+        .content-item:hover {
+            background: #fafafa;
+            transform: translateX(4px);
+            box-shadow: var(--shadow-1);
+        }
+
+        .item-cover {
+            width: 120px;
+            height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-1);
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .content-item:hover .item-cover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-2);
+        }
+
+        .item-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: color 0.3s var(--ease-smooth);
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .content-item:hover .item-title {
+            color: var(--primary);
+        }
+
+        .item-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-placeholder);
+        }
+
+        .meta-tag {
+            padding: 2px 8px;
+            background: #f0f2f5;
+            border-radius: 8px;
+        }
+
+        /* ======================================
+           3. 侧边栏（25%宽度）- 悬浮动效+分层渲染
+           ====================================== */
+        .sidebar-content {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 3-1 个人中心卡片 */
+        .user-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-1);
+            text-align: center;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .user-card:hover {
+            box-shadow: var(--shadow-2);
+            transform: translateY(-4px);
+        }
+
+        .user-card-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            overflow: hidden;
+            border: 4px solid #f0f7ff;
+            box-shadow: var(--shadow-1);
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .user-card:hover .user-card-avatar {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-2);
+        }
+
+        .user-card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-card-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .user-card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .user-card-stats {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid rgba(0, 0, 0, 0.03);
+            padding-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-num {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-text {
+            font-size: 12px;
+            color: var(--text-placeholder);
+        }
+
+        /* 3-2 热门推荐榜单 */
+        .hot-rank {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-1);
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .hot-rank:hover {
+            box-shadow: var(--shadow-2);
+        }
+
+        .rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .rank-item:hover {
+            background: #fafafa;
+            transform: translateX(4px);
+        }
+
+        .rank-index {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .rank-index.top1 {
+            background: #ff6b6b;
+        }
+
+        .rank-index.top2 {
+            background: #ff9f43;
+        }
+
+        .rank-index.top3 {
+            background: #4ecdc4;
+        }
+
+        .rank-index {
+            background: #86909c;
+        }
+
+        .rank-cover {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-1);
+        }
+
+        .rank-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .rank-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .rank-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .rank-hot {
+            font-size: 12px;
+            color: var(--text-placeholder);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hot-icon {
+            color: #ff6b6b;
+        }
+
+        /* 3-3 广告推广区 */
+        .ad-banner {
+            height: 200px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary), var(--secondary)), url('https://picsum.photos/400/200') no-repeat center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-decoration: none;
+            box-shadow: var(--shadow-2);
+            position: relative;
+            transition: all 0.4s var(--ease-smooth);
+        }
+
+        .ad-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.2);
+            transition: background 0.3s var(--ease-smooth);
+        }
+
+        .ad-banner:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-3);
+        }
+
+        .ad-banner:hover::before {
+            background: rgba(0,0,0,0.1);
+        }
+
+        .ad-content {
+            z-index: 2;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .ad-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ad-btn {
+            margin-top: 16px;
+            padding: 8px 20px;
+            background: #fff;
+            color: var(--primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+        }
+
+        .ad-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        /* ======================================
+           4. 底部信息区（渐变背景+分层渲染）
+           ====================================== */
+        .footer-area {
+            height: 160px;
+            background: linear-gradient(180deg, #f5f7fa, #e9ecef);
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 24px;
+            margin-top: auto;
+            border-top: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            margin-bottom: 8px;
+        }
+
+        .footer-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .footer-logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .footer-nav {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-nav-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s var(--ease-smooth);
+        }
+
+        .footer-nav-item:hover {
+            color: var(--primary);
+        }
+
+        .footer-copyright {
+            font-size: 12px;
+            color: var(--text-placeholder);
+            text-align: center;
+        }
+
+        /* ======================================
+           响应式适配（移动端/平板端）
+           ====================================== */
+        @media (max-width: 1200px) {
+            .category-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                flex-direction: column;
+            }
+
+            .category-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .carousel-item {
+                flex-direction: column;
+                padding: 24px;
+                text-align: center;
+            }
+
+            .carousel-info {
+                max-width: 100%;
+                margin-bottom: 24px;
+            }
+
+            .carousel-title {
+                font-size: 24px;
+            }
+
+            .carousel-img {
+                width: 200px;
+                height: 200px;
+            }
+
+            .top-nav {
+                padding: 0 16px;
+            }
+
+            .nav-menu {
+                gap: 16px;
+            }
+
+            .search-box {
+                width: 180px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .category-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .search-box {
+                width: 120px;
+            }
+
+            .content-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .item-cover {
+                width: 100%;
+                height: 120px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>🎉欢迎来到小艺的秘密小屋🎉</h1>
-    <p>本网站发布的任意内容仅供大家学习研究，使用者的任何行为与本人无关</p>
+    <div class="app-container">
+        <!-- 1. 顶部导航区 -->
+        <nav class="top-nav">
+            <!-- 1-1 品牌Logo -->
+            <a href="#" class="nav-logo">
+                <div class="logo-icon">U</div>
+                <span class="logo-text">UIPro</span>
+            </a>
+
+            <!-- 1-2 主导航菜单 -->
+            <div class="nav-menu">
+                <a href="#" class="menu-item active">首页</a>
+                <a href="#" class="menu-item">分类</a>
+                <a href="#" class="menu-item">精选</a>
+                <a href="#" class="menu-item">榜单</a>
+                <a href="#" class="menu-item">我的</a>
+            </div>
+
+            <!-- 1-3 功能操作区 -->
+            <div class="nav-actions">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="搜索内容...">
+                </div>
+                <div class="user-avatar">U</div>
+            </div>
+        </nav>
+
+        <!-- 2. 核心内容区 + 3. 侧边栏 -->
+        <div class="content-wrapper">
+            <!-- 2. 主内容区 -->
+            <main class="main-content">
+                <!-- 2-1-1 焦点轮播区 -->
+                <section class="banner-carousel">
+                    <div class="carousel-item">
+                        <div class="carousel-info">
+                            <span class="carousel-tag">精选推荐</span>
+                            <h2 class="carousel-title">2024年度热门UI设计趋势解析</h2>
+                            <p class="carousel-desc">深度剖析最新UI设计潮流，包含极简风、3D渲染、动效设计等核心方向，助力设计师提升创作水平</p>
+                            <button class="carousel-btn">立即查看</button>
+                        </div>
+                        <div class="carousel-img">
+                            <img src="https://picsum.photos/600/600?random=1" alt="轮播图">
+                        </div>
+                    </div>
+                    <div class="carousel-dots">
+                        <span class="dot-item active"></span>
+                        <span class="dot-item"></span>
+                        <span class="dot-item"></span>
+                    </div>
+                </section>
+
+                <!-- 2-1-2 分类功能卡片区 -->
+                <section class="category-cards">
+                    <a href="#" class="category-card">
+                        <div class="card-icon">🎨</div>
+                        <div class="card-info">
+                            <h3 class="card-title">视觉设计</h3>
+                            <p class="card-desc">涵盖平面、插画、品牌设计</p>
+                        </div>
+                    </a>
+                    <a href="#" class="category-card">
+                        <div class="card-icon">📱</div>
+                        <div class="card-info">
+                            <h3 class="card-title">UI/UX设计</h3>
+                            <p class="card-desc">手机端/网页端界面设计</p>
+                        </div>
+                    </a>
+                    <a href="#" class="category-card">
+                        <div class="card-icon">💻</div>
+                        <div class="card-info">
+                            <h3 class="card-title">前端开发</h3>
+                            <p class="card-desc">HTML/CSS/JS实现效果</p>
+                        </div>
+                    </a>
+                    <a href="#" class="category-card">
+                        <div class="card-icon">📊</div>
+                        <div class="card-info">
+                            <h3 class="card-title">数据可视化</h3>
+                            <p class="card-desc">图表/大屏/数据展示设计</p>
+                        </div>
+                    </a>
+                </section>
+
+                <!-- 2-1-3 精选内容列表区 -->
+                <section class="content-list-section">
+                    <div class="section-header">
+                        <h2 class="section-title">最新精选内容</h2>
+                        <a href="#" class="section-more">查看更多 →</a>
+                    </div>
+                    <div class="content-list">
+                        <div class="content-item">
+                            <div class="item-cover">
+                                <img src="https://picsum.photos/300/200?random=2" alt="内容封面">
+                            </div>
+                            <div class="item-info">
+                                <h3 class="item-title">零基础学习HTML+CSS打造精美网页布局</h3>
+                                <p class="item-desc">从基础语法到实战案例，一步步教你掌握网页布局技巧，打造响应式精美界面</p>
+                                <div class="item-meta">
+                                    <span class="meta-tag">前端开发</span>
+                                    <span>2024-05-18</span>
+                                    <span>阅读量 1.2w</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-item">
+                            <div class="item-cover">
+                                <img src="https://picsum.photos/300/200?random=3" alt="内容封面">
+                            </div>
+                            <div class="item-info">
+                                <h3 class="item-title">2024 UI设计色彩搭配黄金法则</h3>
+                                <p class="item-desc">详解色彩心理学在UI设计中的应用，教你如何搭配出高级、舒适的界面色彩</p>
+                                <div class="item-meta">
+                                    <span class="meta-tag">UI设计</span>
+                                    <span>2024-05-15</span>
+                                    <span>阅读量 8.5k</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-item">
+                            <div class="item-cover">
+                                <img src="https://picsum.photos/300/200?random=4" alt="内容封面">
+                            </div>
+                            <div class="item-info">
+                                <h3 class="item-title">Figma高效设计技巧全解析</h3>
+                                <p class="item-desc">掌握Figma快捷键、组件库、插件等高效设计方法，提升设计效率80%</p>
+                                <div class="item-meta">
+                                    <span class="meta-tag">设计工具</span>
+                                    <span>2024-05-10</span>
+                                    <span>阅读量 10.3k</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- 3. 侧边栏 -->
+            <aside class="sidebar-content">
+                <!-- 3-1 个人中心卡片 -->
+                <div class="user-card">
+                    <div class="user-card-avatar">
+                        <img src="https://picsum.photos/200/200?random=5" alt="用户头像">
+                    </div>
+                    <h3 class="user-card-name">UI设计师</h3>
+                    <p class="user-card-desc">专注UI/UX设计与前端开发</p>
+                    <div class="user-card-stats">
+                        <div class="stat-item">
+                            <span class="stat-num">128</span>
+                            <span class="stat-text">发布内容</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-num">5.6w</span>
+                            <span class="stat-text">累计阅读</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-num">2.3k</span>
+                            <span class="stat-text">粉丝数</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3-2 热门推荐榜单 -->
+                <div class="hot-rank">
+                    <div class="section-header">
+                        <h2 class="section-title">热门榜单</h2>
+                    </div>
+                    <div class="rank-list">
+                        <div class="rank-item">
+                            <span class="rank-index top1">1</span>
+                            <div class="rank-cover">
+                                <img src="https://picsum.photos/100/100?random=6" alt="榜单封面">
+                            </div>
+                            <div class="rank-info">
+                                <h3 class="rank-title">网页动效设计实战教程</h3>
+                                <p class="rank-hot"><span class="hot-icon">🔥</span> 热度 9876</p>
+                            </div>
+                        </div>
+                        <div class="rank-item">
+                            <span class="rank-index top2">2</span>
+                            <div class="rank-cover">
+                                <img src="https://picsum.photos/100/100?random=7" alt="榜单封面">
+                            </div>
+                            <div class="rank-info">
+                                <h3 class="rank-title">移动端APP界面设计规范</h3>
+                                <p class="rank-hot"><span class="hot-icon">🔥</span> 热度 8765</p>
+                            </div>
+                        </div>
+                        <div class="rank-item">
+                            <span class="rank-index top3">3</span>
+                            <div class="rank-cover">
+                                <img src="https://picsum.photos/100/100?random=8" alt="榜单封面">
+                            </div>
+                            <div class="rank-info">
+                                <h3 class="rank-title">CSS3渐变与阴影高级技巧</h3>
+                                <p class="rank-hot"><span class="hot-icon">🔥</span> 热度 7654</p>
+                            </div>
+                        </div>
+                        <div class="rank-item">
+                            <span class="rank-index">4</span>
+                            <div class="rank-cover">
+                                <img src="https://picsum.photos/100/100?random=9" alt="榜单封面">
+                            </div>
+                            <div class="rank-info">
+                                <h3 class="rank-title">Axure原型设计从入门到精通</h3>
+                                <p class="rank-hot"><span class="hot-icon">🔥</span> 热度 6543</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3-3 广告推广区 -->
+                <a href="#" class="ad-banner">
+                    <div class="ad-content">
+                        <h3 class="ad-title">加入VIP会员</h3>
+                        <p>解锁海量精品教程/资源</p>
+                        <button class="ad-btn">立即开通</button>
+                    </div>
+                </a>
+            </aside>
+        </div>
+
+        <!-- 4. 底部信息区 -->
+        <footer class="footer-area">
+            <a href="#" class="footer-logo">
+                <div class="footer-logo-icon">U</div>
+                <span class="footer-logo-text">UIPro</span>
+            </a>
+            <nav class="footer-nav">
+                <a href="#" class="footer-nav-item">关于我们</a>
+                <a href="#" class="footer-nav-item">联系我们</a>
+                <a href="#" class="footer-nav-item">隐私政策</a>
+                <a href="#" class="footer-nav-item">用户协议</a>
+            </nav>
+            <p class="footer-copyright">© 2024 UIPro. 所有内容均为演示用途，侵删。</p>
+        </footer>
+    </div>
 </body>
 </html>
