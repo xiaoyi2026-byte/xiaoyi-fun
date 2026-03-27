@@ -1,814 +1,140 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>开发者：小艺</title>
-    <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/assets/fontawesome/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角洲行动-暗星赠送模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .simulator {
+            width: 90%;
+            max-width: 1400px;
+            aspect-ratio: 16/9;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .click-area {
+            position: absolute;
+            cursor: pointer;
+            z-index: 5;
+        }
+        /* 图1 第一个商品区域 */
+        #item1-click {
+            top: 15%;
+            left: 10%;
+            width: 25%;
+            height: 80%;
+        }
+        /* 图2 赠送按钮 */
+        #send-btn {
+            bottom: 5%;
+            left: 35%;
+            width: 30%;
+            height: 12%;
+        }
+        /* 图3 确认按钮 */
+        #confirm-btn {
+            bottom: 30%;
+            left: 35%;
+            width: 30%;
+            height: 12%;
+        }
+        /* 输入框样式（精准定位在赠送按钮上方） */
+        #nickname-input {
+            position: absolute;
+            bottom: 18%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 6%;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: white;
+            padding: 0 10px;
+            font-size: 16px;
+            outline: none;
+            z-index: 5;
+            text-align: center;
+        }
+    </style>
 </head>
-<body style="padding-top: 45px;">
-    <div class="container">
-        <header class="header-block">
-            <div class="header-title-area">
-                <h1 class="main-title">性能优化 AI</h1>
-                <span class="main-subtitle">网页管理器</span>
-            </div>
-            <div class="header-controls">
-                <div class="bar-selection lang-selection" id="lang-selection-bar">
-                    <span class="selected-value" id="lang-selected-value">中文</span>
-                    <div class="available-options">
-                        <div class="options-header">
-                            <span class="options-title" data-lang-key="select_option">选择语言</span>
-                            <button class="options-close-btn" type="button">&times;</button>
-                        </div>
-                        <div class="options-content">
-                            <button class="option-button" data-lang="en">English</button>
-                            <button class="option-button" data-lang="id">Indonesia</button>
-                            <button class="option-button" data-lang="ar">العربية</button>
-                        </div>
-                    </div>
-                </div>
-                <button id="theme-toggle-btn" class="header-icon-btn" title="切换主题"><i class="fas fa-sun"></i></button>
-            </div>
-        </header>
-
-        <main id="main-content">
-            <div id="home-view" class="view-content active">
-                <div class="hero-card">
-                    <div class="hero-visual">
-                        <img id="service-banner" src="/img/stopped.webp" alt="状态可视化" class="status-visual-img">
-                    </div>
-                    <div class="hero-bg-overlay"></div>
-                    <div class="hero-content">
-                        <div class="hero-header">
-                            <div class="lite-mode-wrapper" style="display: flex; align-items: center; gap: 8px;">
-                                <label class="toggle-switch small">
-                                    <input type="checkbox" id="lite-mode-toggle" data-file="settings.ini" data-key="lite_mode" data-on="1" data-off="0">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span class="lite-label" data-lang-key="lite_mode">轻量模式</span>
-                                <i class="fas fa-info-circle info-icon" data-info-key="lite_mode_info" style="cursor: pointer; font-size: 0.85em; opacity: 0.8;"></i>
-                            </div>
-                            <span id="service-status" class="hero-status status-unknown">检查中...</span>
-                        </div>
-                        <div class="hero-footer">
-                            <span id="current-profile-mode" class="hero-profile-mode">加载中...</span>
-                        </div>
-                    </div>
-                </div>
-
-<div class="monitor-grid">
-    <div class="monitor-card">
-        <div class="monitor-header">
-            <i class="fas fa-memory"></i> <span>内存</span>
+<body>
+    <div class="simulator">
+        <!-- 图1：商城界面 -->
+        <div class="screen active" id="screen1">
+            <img src="image1.jpg" alt="商城界面">
+            <div class="click-area" id="item1-click" onclick="goToScreen2()"></div>
         </div>
-        <div class="circular-chart-container">
-            <div class="circular-chart" id="ram-chart" style="--p:0; --c:var(--warning-color);">
-                <div class="chart-content">
-                    <span id="ram-usage" class="chart-value">0%</span>
-                </div>
-            </div>
+        <!-- 图2：赠送确认界面 -->
+        <div class="screen" id="screen2">
+            <img src="image2.jpg" alt="赠送确认">
+            <input type="text" id="nickname-input" placeholder="输入好友昵称进行搜索">
+            <div class="click-area" id="send-btn" onclick="goToScreen3()"></div>
         </div>
-        <div class="monitor-pulse"></div>
-    </div>
-
-    <div class="monitor-card">
-        <div class="monitor-header">
-            <i class="fas fa-microchip"></i> <span>系统负载</span>
-        </div>
-        <div class="circular-chart-container">
-            <div class="circular-chart" id="sys-cpu-chart" style="--p:0; --c:var(--danger-color);">
-                <div class="chart-content">
-                    <span id="system-cpu-load" class="chart-value">0%</span>
-                </div>
-            </div>
-        </div>
-        <div class="monitor-pulse"></div>
-    </div>
-
-    <div class="monitor-card">
-        <div class="monitor-header">
-            <i class="fas fa-server"></i> <span>服务</span>
-        </div>
-        <div class="circular-chart-container">
-            <div class="circular-chart" id="svc-cpu-chart" style="--p:0; --c:var(--accent-color);">
-                <div class="chart-content">
-                    <span id="cpu-usage" class="chart-value">0%</span>
-                </div>
-            </div>
-        </div>
-        <div class="monitor-pulse"></div>
-    </div>
-</div>
-
-                <div class="section-title">
-                    <h3><i class="fas fa-bolt"></i> 快速操作</h3>
-                    <button class="icon-btn-refresh" id="refresh-button" title="刷新"><i class="fas fa-sync-alt"></i></button>
-                </div>
-                
-                <div class="action-grid">
-                    <button class="action-card" data-command="install">
-                        <div class="ac-icon install"><i class="fas fa-download"></i></div>
-                        <div class="ac-text"><span class="ac-title" data-lang-key="install">安装</span></div>
-                    </button>
-                    <button class="action-card" data-command="reload-settings">
-                        <div class="ac-icon reload"><i class="fas fa-sync"></i></div>
-                        <div class="ac-text"><span class="ac-title" data-lang-key="reload">重新加载</span></div>
-                    </button>
-                    <button class="action-card danger" data-command="uninstall">
-                        <div class="ac-icon uninstall"><i class="fas fa-trash-alt"></i></div>
-                        <div class="ac-text"><span class="ac-title" data-lang-key="uninstall">卸载</span></div>
-                    </button>
-                    <button class="action-card danger" id="exit-button">
-                        <div class="ac-icon exit"><i class="fas fa-power-off"></i></div>
-                        <div class="ac-text"><span class="ac-title" data-lang-key="exit">退出</span></div>
-                    </button>
-                </div>
-
-                <div class="secondary-grid">
-                    <div class="info-box card-block">
-                        <h4><i class="fas fa-info-circle"></i> 模块信息</h4>
-                        <div class="module-info-grid">
-                            <strong>模块:</strong>
-                            <div><span id="module-name">不可用</span> <span id="module-version" class="badge">v0</span></div>
-                            <strong>开发者:</strong>
-                            <div id="module-developer">不可用</div>
-                            <strong>插件:</strong>
-                            <div id="module-plugins">无</div>
-                        </div>
-                    </div>
-                    <div class="support-box card-block">
-                        <h4><i class="fas fa-heart"></i> 支持</h4>
-                        <div class="support-buttons">
-                            <button id="telegram-button" class="btn-pill telegram"><i class="fab fa-telegram-plane"></i> Telegram</button>
-                            <a href="https://sociabuzz.com/reljawa/tribe" target="_blank" class="btn-pill donate"><i class="fas fa-coffee"></i> 捐赠</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="gamelist-view" class="view-content">
-                <div class="control-block card-block">
-                    <h2><i class="fas fa-gamepad"></i> <span data-lang-key="game_list_editor">游戏列表编辑器</span></h2>
-                    <p data-lang-key="game_list_desc">选择将被服务识别为游戏的应用程序。</p>
-                    <input type="search" id="game-list-search" class="text-input" placeholder="搜索应用程序...">
-                    <div id="game-list-container"><div class="loader-spinner"></div></div>
-                    <button id="save-game-list-button" class="action-button"><i class="fas fa-save"></i> <span data-lang-key="save_game_list">保存游戏列表</span></button>
-                </div>
-            </div>
-
-            <div id="settings-view" class="view-content">
-                <div id="settings-pages-container">
-                    <div id="general-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-cogs"></i> <span data-lang-key="general">常规</span></h2>
-                            <div class="setting-item">
-                                <label><i class="fas fa-hdd"></i> <span data-lang-key="fstrim">文件系统整理</span></label>
-                                <button class="action-button" data-command="fstrim"><span data-lang-key="run_fstrim">运行 Fstrim</span></button>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-hand-pointer"></i> <span data-lang-key="touch">触摸增强</span></label>
-                                <div class="selection-group">
-                                    <div class="bar-selection" id="touch-selection-bar">
-                                        <span class="selected-value" id="touch-selected-value">重置</span>
-                                        <div class="available-options" id="touch-available-options">
-                                            <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                            <div class="options-content">
-                                                <button class="option-button" data-param="high"><span data-lang-key="high">高</span></button>
-                                                <button class="option-button" data-param="medium"><span data-lang-key="medium">中</span></button>
-                                                <button class="option-button" data-param="low"><span data-lang-key="low">低</span></button>
-                                                <button class="option-button" data-param="reset">重置</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button class="action-button" id="touch-apply-button"><span data-lang-key="apply">应用</span></button>
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-gamepad"></i> <span data-lang-key="driver">驱动选择</span></label>
-                                <div class="selection-group">
-                                    <div class="bar-selection" id="driver-selection-bar">
-                                        <span class="selected-value" id="driver-selected-value">重置</span>
-                                        <div class="available-options" id="driver-available-options">
-                                            <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                            <div class="options-content">
-                                                <button class="option-button" data-param="game"><span data-lang-key="game">游戏</span></button>
-                                                <button class="option-button" data-param="prelease"><span data-lang-key="pre-release">预发布版</span></button>
-                                                <button class="option-button" data-param="angle">Angle</button>
-                                                <button class="option-button" data-param="reset">重置</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button class="action-button" id="driver-apply-button"><span data-lang-key="apply">应用</span></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="settings-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-sliders-h"></i> <span data-lang-key="general_settings">常规设置</span></h2>
-                            <div class="setting-item">
-                                <label><span data-lang-key="just_in_time_mode">即时编译模式</span></label>
-                                <div class="bar-selection" data-file="settings.ini" data-key="just-in-time-mode">
-                                    <span class="selected-value">默认</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="speed">速度</button>
-                                            <button class="option-button" data-value="speed-profile">速度-性能</button>
-                                            <button class="option-button" data-value="everything">全部</button>
-                                            <button class="option-button" data-value="default">默认</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="job_opt_info"></i> <span data-lang-key="job_opt">作业优化</span></label>
-                                <div class="bar-selection" data-file="settings.ini" data-key="job_opt">
-                                    <span class="selected-value">平衡</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="performance">性能</button>
-                                            <button class="option-button" data-value="saver">省电</button>
-                                            <button class="option-button" data-value="balanced">平衡</button>
-                                            <button class="option-button" data-value="gaming_priority">游戏优先</button>
-                                            <button class="option-button" data-value="background_restricted">后台限制</button>
-                                            <button class="option-button" data-value="multitasking_priority">多任务优先</button>
-                                            <button class="option-button" data-value="default">默认</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="egl_preloader_info"></i> <span data-lang-key="egl_preloader">EGL 预加载器</span></label>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    <div class="bar-selection" id="egl-type-container" data-file="settings.ini" data-key="egl_preloader_type" style="min-width: 140px; padding: 5px 10px; height: auto;">
-                                        <span class="selected-value">系统库</span>
-                                        <div class="available-options">
-                                            <div class="options-header"><span class="options-title" data-lang-key="select_option">选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                            <div class="options-content">
-                                                <button class="option-button" data-value="system_lib">系统库</button>
-                                                <button class="option-button" data-value="game_native">游戏原生</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="egl-preloader-toggle" data-file="settings.ini" data-key="egl_preloader" data-on="Y" data-off="N">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="setting-item">
-                                <label><span data-lang-key="io_adjustment">I/O 调整</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="io_adjustment" data-on="active" data-off="inactive"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="window_logging_info"></i> <span data-lang-key="disable_window_logging">禁用窗口日志</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="window_logging" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="logcat_adjuster_info"></i> <span data-lang-key="logcat_adjuster">日志调整</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="logcat_adjuster" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="dnd_info"></i> <span data-lang-key="dnd_while_gaming">游戏时免打扰</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="dnd_if_gaming" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item" id="gapps-limiter-item" data-min-sdk="33">
-                                <label><i class="fas fa-info-circle" data-info-key="gapps_limiter_info"></i> <span data-lang-key="gapps_limiter">Gapps 限制器</span> <span class="badge" style="margin-left: 5px;">A13+</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="gapps_limiter" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item" id="silent-trace-item">
-                                <label><i class="fas fa-info-circle" data-info-key="silent_trace_info"></i> <span data-lang-key="silent_trace">静默追踪</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="silent_trace" data-on="true" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                        </div>
-                        
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-memory"></i> <span data-lang-key="api_ram_settings">API 与内存设置</span></h2>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="ram_manager_info"></i> <span data-lang-key="ram_manager_name">内存管理器</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="ram_manager-toggle" data-file="settings.ini" data-key="ram_manager" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item ram-dependent" id="dynamic-swap-item" data-min-sdk="34">
-                                <label><i class="fas fa-info-circle" data-info-key="dynamic_swap_info"></i> <span data-lang-key="dynamic_swap">动态交换</span> <span class="badge" style="margin-left: 5px;">A14+</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="api_settings.ini" data-key="dynamic_swap_enabled" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="allowed_zram_used_info"></i> <span data-lang-key="allowed_zram_used">允许 ZRAM 使用 (5-40%)</span></label>
-                                <div class="range-slider-group">
-                                    <input type="range" min="5" max="40" value="20" class="range-slider" id="swap_threshold_adjust_perc-slider">
-                                    <input type="number" class="range-value-input" id="swap_threshold_adjust_perc-input" data-file="api_settings.ini" data-key="swap_threshold_adjust_perc" min="5" max="40">
-                                </div>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="allow_whitelist_info"></i> <span data-lang-key="allow_kill_whitelist_apps">允许终止白名单应用</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="settings.ini" data-key="allow_whitelist" data-on="yes" data-off="no"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item ram-dependent" id="allow-compaction-container" data-min-sdk="33">
-                                <label><i class="fas fa-info-circle" data-info-key="allow_compaction_info"></i> <span data-lang-key="allow_compaction">允许压缩</span> <span class="badge" style="margin-left: 5px;">A13+</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="allow-compaction-toggle" data-file="api_settings.ini" data-key="allow_compaction" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="warning_ram_info"></i> <span data-lang-key="warning_ram_perc">内存警告 % (5-70)</span></label>
-                                <input type="number" class="range-value-input" id="warning_ram_perc-input" data-key="warning_ram_perc" min="5" max="70">
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="critical_ram_info"></i> <span data-lang-key="critical_ram_perc">内存临界 % (5-70)</span></label>
-                                <input type="number" class="range-value-input" id="critical_ram_perc-input" data-key="critical_ram_perc" min="5" max="70">
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <button class="action-button" id="save-ram-thresholds-btn"><i class="fas fa-save"></i> <span data-lang-key="save_ram_settings">保存内存阈值</span></button>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="ram_manager_exec_delay_info"></i> <span data-lang-key="ram_manager_exec_delay">内存管理器执行延迟 (1-120秒)</span></label>
-                                <div class="range-slider-group">
-                                    <input type="range" min="1" max="120" value="60" class="range-slider" id="exec_delay-slider">
-                                    <input type="number" class="range-value-input" id="exec_delay-input" data-file="api_settings.ini" data-key="exec_delay">
-                                </div>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="ram_factor_info"></i> <span data-lang-key="ram_factor">内存因子</span></label>
-                                <div class="bar-selection" data-file="api_settings.ini" data-key="ram_mode">
-                                    <span class="selected-value">安全</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="agresive">激进</button>
-                                            <button class="option-button" data-value="safety">安全</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="use_trim_memory_info"></i> <span data-lang-key="use_trim_memory">使用内存整理</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="use_trim_memory-toggle" data-file="settings.ini" data-key="use_trim_memory" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item ram-dependent">
-                                <label><i class="fas fa-info-circle" data-info-key="trim_memory_level_info"></i> <span data-lang-key="trim_memory_level">内存整理级别</span></label>
-                                <div class="bar-selection" data-file="settings.ini" data-key="trim_memory_level">
-                                    <span class="selected-value">运行低</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="HIDDEN">隐藏</button>
-                                            <button class="option-button" data-value="RUNNING_MODERATE">运行中等</button>
-                                            <button class="option-button" data-value="RUNNING_LOW">运行低</button>
-                                            <button class="option-button" data-value="RUNNING_CRITICAL">运行临界</button>
-                                            <button class="option-button" data-value="COMPLETE">完成</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="smart_power_saver_info"></i> <span data-lang-key="smart_power_saver">智能省电</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="adaptive_power_saver-toggle" data-file="api_settings.ini" data-key="adaptive_power_saver" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item">
-                                <label><span data-lang-key="game_preloading">游戏预加载</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="game-preloading-toggle" data-file="api_settings.ini" data-key="game_preloading" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item" id="shader-preload-size-item">
-                                <label><i class="fas fa-info-circle" data-info-key="preload_size_limit_info"></i> <span data-lang-key="shader_preload_size">着色器预加载大小</span></label>
-                                <input type="text" class="text-input" data-file="api_settings.ini" data-key="Preload_size_limit">
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="quick_launch_info"></i> <span data-lang-key="quick_launch">快速启动</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="api_settings.ini" data-key="Quick_load" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                        </div>
-                        
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-gamepad"></i> <span data-lang-key="game_manager">游戏管理器</span></h2>
-                            <div class="setting-item">
-                                <label><span data-lang-key="pubg_config_enable">PUBG Mobile 全局配置</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="game_manager.ini" data-key="pubg_config_enable" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="advanced-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-cogs"></i> <span data-lang-key="advance_settings">高级设置</span></h2>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="swappy_delta_info"></i> <span data-lang-key="swappy_delta_rt_mode">Swappy-Delta RT 模式</span></label>
-                                <div class="bar-selection" data-file="advance_settings.ini" data-key="swappy-delta_rt" id="swappy-delta-rt-container">
-                                    <span class="selected-value">停止</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="start-advanced">启动-高级</button>
-                                            <button class="option-button" data-value="start">启动</button>
-                                            <button class="option-button" data-value="stop">停止</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item" id="target-frame-rate-item">
-                                <label><i class="fas fa-info-circle" data-info-key="target_frame_rate_info"></i> <span data-lang-key="target_frame_rate">目标帧率</span></label>
-                                <div class="bar-selection" data-file="advance_settings.ini" data-key="target_frame_rate">
-                                    <span class="selected-value">默认</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="default">默认</button>
-                                            <button class="option-button" data-value="60">60</button>
-                                            <button class="option-button" data-value="90">90</button>
-                                            <button class="option-button" data-value="120">120</button>
-                                            <button class="option-button" data-value="144">144</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><span data-lang-key="downscale">降分辨率</span></label>
-                                <div class="bar-selection" data-file="advance_settings.ini" data-key="downscale">
-                                    <span class="selected-value">禁用</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="0.3">0.3</button>
-                                            <button class="option-button" data-value="0.35">0.35</button>
-                                            <button class="option-button" data-value="0.4">0.4</button>
-                                            <button class="option-button" data-value="0.45">0.45</button>
-                                            <button class="option-button" data-value="0.5">0.5</button>
-                                            <button class="option-button" data-value="0.55">0.55</button>
-                                            <button class="option-button" data-value="0.6">0.6</button>
-                                            <button class="option-button" data-value="0.65">0.65</button>
-                                            <button class="option-button" data-value="0.7">0.7</button>
-                                            <button class="option-button" data-value="0.75">0.75</button>
-                                            <button class="option-button" data-value="0.8">0.8</button>
-                                            <button class="option-button" data-value="0.85">0.85</button>
-                                            <button class="option-button" data-value="0.9">0.9</button>
-                                            <button class="option-button" data-value="disable">禁用</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-desktop"></i> <span data-lang-key="display_settings">显示设置</span></h2>
-                            <div class="setting-item">
-                                <label><span data-lang-key="bypass_dynamic_refresh_rate">绕过动态刷新率</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="bypass_dynamic_refresh_rate-toggle" data-file="display_settings.ini" data-key="bypass_dynamic_refresh_rate" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item" id="device-refresh-rate-item">
-                                <label><span data-lang-key="device_refresh_rate">设备刷新率</span></label>
-                                <div class="bar-selection" data-file="display_settings.ini" data-key="device_refresh_rate">
-                                    <span class="selected-value">90</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="60">60</button>
-                                            <button class="option-button" data-value="90">90</button>
-                                            <button class="option-button" data-value="120">120</button>
-                                            <button class="option-button" data-value="144">144</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item" id="device-group-item">
-                                <label><i class="fas fa-info-circle" data-info-key="device_group_info"></i> <span data-lang-key="device_group">设备组</span></label>
-                                <div class="bar-selection" data-file="display_settings.ini" data-key="device-group">
-                                    <span class="selected-value">bbk</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="ubbk">ubbk</button>
-                                            <button class="option-button" data-value="bbk">bbk</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-palette"></i> <span data-lang-key="render_settings">渲染设置</span></h2>
-                            <div class="setting-item">
-                                <label><span data-lang-key="hw_renderer">硬件渲染器</span></label>
-                                <div class="bar-selection" data-file="render_settings.ini" data-key="hw_renderer">
-                                    <span class="selected-value">默认</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="skiavk">SkiaVK</button>
-                                            <button class="option-button" data-value="skiagl">SkiaGL</button>
-                                            <button class="option-button" data-value="opengl">OpenGL</button>
-                                            <button class="option-button" data-value="default">默认</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><span data-lang-key="hw_backend_renderer">硬件后端渲染器</span></label>
-                                <div class="bar-selection" data-file="render_settings.ini" data-key="hw_backend_renderer">
-                                    <span class="selected-value">默认</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="threaded">线程化</button>
-                                            <button class="option-button" data-value="default">默认</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><span data-lang-key="hw_composition">硬件合成</span></label>
-                                <div class="bar-selection" data-file="render_settings.ini" data-key="hw_composition">
-                                    <span class="selected-value">默认</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="default">默认</button>
-                                            <button class="option-button" data-value="gpu">GPU</button>
-                                            <button class="option-button" data-value="cpu">CPU</button>
-                                            <button class="option-button" data-value="c2d">C2D</button>
-                                            <button class="option-button" data-value="mdp">MDP</button>
-                                            <button class="option-button" data-value="hwc">HWC</button>
-                                            <button class="option-button" data-value="dyn">DYN</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="os_tunning-page" class="settings-page">
-                        <div class="control-block card-block">
-                             <h2><i class="fab fa-android"></i> <span data-lang-key="os_tunning">系统调优</span></h2>
-                             <div id="os-tunning-content">
-                                <div id="miui-hyperos-settings" class="os-specific-settings" style="display: none;">
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="speed_mode_info"></i> <span data-lang-key="speed_mode">启用速度模式</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="speed_mode" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="templimit_info"></i> <span data-lang-key="disable_templimit">禁用温度限制</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="hos_templimit_disabler" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="game_adj_info"></i> <span data-lang-key="game_adjustment">游戏调整</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="hos_game_adj" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="perf_enabler_info"></i> <span data-lang-key="perf_enabler">性能启用器</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="allow_perf_mode" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="sched_boost_info"></i> <span data-lang-key="sched_boost">启用调度加速</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="sched_booster" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="thermal_breaker_info"></i> <span data-lang-key="thermal_breaker">启用温控突破</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="thermal_breaker" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                </div>
-                                <div id="xos-settings" class="os-specific-settings" style="display: none;">
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="bypass_temp_warn_info"></i> <span data-lang-key="bypass_temp_warn">绕过高温警告</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="xos_bypass_hightemp_warn" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="user_exp_info"></i> <span data-lang-key="user_experience">启用用户体验</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="xos_user_experience" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="perf_enabler_info"></i> <span data-lang-key="perf_enabler">性能启用器</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="allow_perf_mode" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                </div>
-                                <div id="funtouchos-settings" class="os-specific-settings" style="display: none;">
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="fos_hdr_disabler_info"></i> <span data-lang-key="fos_hdr_disabler">禁用 HDR 格式</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="fos_hdr_disabler" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="fos_network_acc_info"></i> <span data-lang-key="fos_network_acc">启用数据网络加速</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="fos_network_acc" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="perf_enabler_info"></i> <span data-lang-key="perf_enabler">性能启用器</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="allow_perf_mode" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                </div>
-                                <div id="coloros-settings" class="os-specific-settings" style="display: none;">
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="perf_enabler_info"></i> <span data-lang-key="perf_enabler">性能启用器</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="allow_perf_mode" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                    <div class="setting-item">
-                                        <label><i class="fas fa-info-circle" data-info-key="temp_protect_info"></i> <span data-lang-key="disable_temp_protect">禁用温度保护</span></label>
-                                        <label class="toggle-switch"><input type="checkbox" data-file="os_settings.ini" data-key="cos_temp_protect_disabler" data-on="Y" data-off="N"><span class="toggle-slider"></span></label>
-                                    </div>
-                                </div>
-                                <div id="unsupported-os-settings" class="os-specific-settings" style="display: none;">
-                                    <p data-lang-key="no_os_settings">当前您的操作系统暂无特定调优选项。</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="launcher-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-rocket"></i> <span data-lang-key="launcher_settings">启动器设置</span></h2>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="icon_quality_info"></i> <span data-lang-key="icon_quality">图标质量</span></label>
-                                <div class="range-slider-group">
-                                    <input type="range" min="5" max="100" value="100" class="range-slider" id="icon_quality-slider">
-                                    <input type="number" class="range-value-input" id="icon_quality-input" data-file="launcher_settings.ini" data-key="icon_quality" min="5" max="100">
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="icon_format_info"></i> <span data-lang-key="icon_format">图标格式</span></label>
-                                <div class="bar-selection" data-file="launcher_settings.ini" data-key="icon_format">
-                                    <span class="selected-value">PNG</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="PNG">PNG</button>
-                                            <button class="option-button" data-value="WEBP">WEBP</button>
-                                            <button class="option-button" data-value="JPEG">JPEG</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="developer-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-code"></i> <span data-lang-key="dev_menu">开发者菜单</span></h2>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="debug_info"></i> <span data-lang-key="print_debugging_log">打印调试日志</span></label>
-                                <label class="toggle-switch"><input type="checkbox" data-file="dev_mode.settings" data-key="debug" data-on="true" data-off="false"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="swappy_api_debug_info"></i> <span data-lang-key="print_swappy_debug_log">打印 Swappy-Delta 调试日志</span></label>
-                                <div class="bar-selection" data-file="dev_mode.settings" data-key="swappy_api_debug">
-                                    <span class="selected-value">false</span>
-                                    <div class="available-options">
-                                        <div class="options-header"><span class="options-title" data-lang-key="select_option">选择选项</span><button class="options-close-btn" type="button">&times;</button></div>
-                                        <div class="options-content">
-                                            <button class="option-button" data-value="true">True</button>
-                                            <button class="option-button" data-value="false">False</button>
-                                            <button class="option-button" data-value="false-silent">False-Silent</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="pararel_execution_conf_info"></i> <span data-lang-key="parallel_execution">并行执行</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="pararel_execution_conf-toggle" data-file="dev_mode.settings" data-key="pararel_execution_conf" data-on="y" data-off="n"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="max_pararel_thread_info"></i> <span data-lang-key="max_parallel_threads">最大并行线程数</span></label>
-                                <div class="range-slider-group">
-                                    <input type="range" min="1" max="8" value="4" class="range-slider" id="max_pararel_thread-slider">
-                                    <input type="number" class="range-value-input" id="max_pararel_thread-input" data-file="dev_mode.settings" data-key="max_pararel_thread" min="1" max="8">
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="pararel_dir_perf_info"></i> <span data-lang-key="parallel_dir_perf">并行目录 (性能)</span></label>
-                                <input type="text" class="text-input" placeholder="例如: zt.sh,script.sh" data-file="dev_mode.settings" data-key="pararel_dir_perf" list="module-scripts-list">
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="pararel_dir_close_info"></i> <span data-lang-key="parallel_dir_balanced">并行目录 (平衡)</span></label>
-                                <input type="text" class="text-input" placeholder="例如: zt.sh,script.sh" data-file="dev_mode.settings" data-key="pararel_dir_close" list="module-scripts-list">
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="pararel_dir_startup_info"></i> <span data-lang-key="parallel_dir_startup">并行目录 (启动)</span></label>
-                                <input type="text" class="text-input" placeholder="例如: zt.sh,script.sh" data-file="dev_mode.settings" data-key="pararel_dir_startup" list="module-scripts-list">
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="pararel_dir_closeup_info"></i> <span data-lang-key="parallel_dir_uninstall">并行目录 (卸载)</span></label>
-                                <input type="text" class="text-input" placeholder="例如: zt.sh,script.sh" data-file="dev_mode.settings" data-key="pararel_dir_closeup" list="module-scripts-list">
-                            </div>
-                        </div>
-                    </div>
-                    <div id="cpu_trace-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <div class="cpu-trace-header">
-                                <h2><i class="fas fa-microchip"></i> <span data-lang-key="cpu_trace">CPU 追踪</span></h2>
-                                <div class="cpu-trace-summary"><span data-lang-key="average_load">平均负载</span>: <strong id="cpu-avg-load">0%</strong></div>
-                                <div class="control-header">
-                                    <label data-lang-key="realtime_monitoring">实时监控</label>
-                                    <label class="toggle-switch"><input type="checkbox" id="cpu-trace-toggle"><span class="toggle-slider"></span></label>
-                                </div>
-                            </div>
-                            <canvas id="cpu-usage-graph"></canvas>
-                            <div id="cpu-trace-grid" class="cpu-trace-grid-new"></div>
-                            <div class="top-processes-container">
-                                <h3 data-lang-key="top_processes">顶级进程</h3>
-                                <div id="cpu-top-processes"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="webui_settings-page" class="settings-page">
-                        <div class="control-block card-block">
-                            <h2><i class="fas fa-server"></i> <span data-lang-key="webui_settings">WebUI 设置</span></h2>
-                            <div class="setting-item">
-                                <label><i class="fas fa-info-circle" data-info-key="standby_info"></i> <span data-lang-key="standby_mode">待机模式</span></label>
-                                <label class="toggle-switch"><input type="checkbox" id="standby-toggle" data-file="webui_config.ini" data-key="standby" data-on="true" data-off="false"><span class="toggle-slider"></span></label>
-                            </div>
-                            <div class="setting-item" id="shutdown-time-item">
-                                <label><i class="fas fa-info-circle" data-info-key="shutdown_time_info"></i> <span data-lang-key="inactivity_shutdown_time">不活动关闭时间 (分钟)</span></label>
-                                <div class="range-slider-group">
-                                    <input type="range" min="5" max="120" value="30" class="range-slider" id="shutdowntime-slider">
-                                    <input type="number" class="range-value-input" id="shutdowntime-input" data-file="webui_config.ini" data-key="shutdowntime" min="5" max="120">
-                                </div>
-                            </div>
-                            <div class="setting-item">
-                                <label><i class="fas fa-mobile-alt"></i> <span>最小宽度 (视口像素)</span></label>
-                                <div class="range-slider-group">
-                                    <input type="number" class="range-value-input" id="viewport-width-input" placeholder="默认" style="width: 100px; margin-right: 10px;">
-                                    <button id="apply-viewport-btn" class="action-button">应用</button>
-                                    <button id="reset-viewport-btn" class="action-button danger-button" style="margin-left: 5px;">重置</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-        
-        <div style="display: none;">
-            <span id="device-sdk-version">0</span>
-        </div>
-        <datalist id="module-scripts-list"></datalist>
-    </div>
-
-    <div id="settings-modal-overlay" class="modal-overlay-transparent">
-        <div id="settings-modal" class="bottom-sheet-modal">
-            <div class="modal-header">
-                <h2 data-lang-key="settings">设置</h2>
-                <button id="settings-modal-close-btn" class="close-icon">&times;</button>
-            </div>
-            <div class="modal-content">
-                <a href="#" class="settings-link" data-page="general-page"><i class="fas fa-cogs"></i> <span data-lang-key="general">常规</span></a>
-                <a href="#" class="settings-link" data-page="settings-page"><i class="fas fa-sliders-h"></i> <span data-lang-key="general_settings">基本设置</span></a>
-                <a href="#" class="settings-link" data-page="advanced-page"><i class="fas fa-tools"></i> <span data-lang-key="advanced">高级</span></a>
-                <a href="#" class="settings-link" data-page="os_tunning-page" id="os-tunning-settings-link" style="display: none;"><i class="fab fa-android"></i> <span data-lang-key="os_tunning">系统调优</span></a>
-                <a href="#" class="settings-link" data-page="launcher-page" id="launcher-settings-link"><i class="fas fa-rocket"></i> <span data-lang-key="launcher_settings">启动器设置</span></a>
-                <a href="#" class="settings-link" data-page="developer-page"><i class="fas fa-code"></i> <span data-lang-key="developer">开发者</span></a>
-                <a href="#" class="settings-link" data-page="cpu_trace-page"><i class="fas fa-microchip"></i> <span data-lang-key="cpu_trace">CPU 追踪</span></a>
-                <a href="#" class="settings-link" data-page="webui_settings-page"><i class="fas fa-server"></i> <span data-lang-key="webui_settings">WebUI 设置</span></a>
-            </div>
+        <!-- 图3：赠送成功界面 -->
+        <div class="screen" id="screen3">
+            <img src="image3.jpg" alt="赠送成功">
+            <div class="click-area" id="confirm-btn" onclick="goToScreen1()"></div>
         </div>
     </div>
 
-    <nav id="bottom-nav">
-        <button class="nav-btn active" data-view="home-view">
-            <i class="fas fa-home"></i>
-            <span data-lang-key="home">首页</span>
-        </button>
-        <button class="nav-btn" data-view="gamelist-view">
-            <i class="fas fa-gamepad"></i>
-            <span data-lang-key="game_list">游戏列表</span>
-        </button>
-        <button id="settings-nav-btn" class="nav-btn">
-            <i class="fas fa-cog"></i>
-            <span data-lang-key="settings">设置</span>
-        </button>
-    </nav>
-    
-    <div id="notification-container"></div>
-    <div id="shutdown-loader" class="modal-overlay" style="display: none;">
-        <div class="shutdown-content">
-            <div class="loader-spinner"></div>
-            <p data-lang-key="processing">处理中...</p>
-        </div>
-    </div>
-    <div id="exit-confirm-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content card-block">
-            <h2 data-lang-key="exit_confirmation_title">未应用的更改</h2>
-            <p data-lang-key="exit_confirmation_body">您有未应用的设置需要重新加载。您希望如何操作？</p>
-            <div class="button-group">
-                <button id="exit-confirm-reload" class="action-button"><i class="fas fa-sync"></i> <span data-lang-key="reload_and_exit">重新加载并退出</span></button>
-                <button id="exit-confirm-continue" class="action-button danger-button"><i class="fas fa-power-off"></i> <span data-lang-key="exit_without_reload">不重新加载直接退出</span></button>
-            </div>
-        </div>
-    </div>
-    <div id="info-modal-overlay" class="info-modal-overlay">
-        <div class="info-modal-card">
-            <div class="info-modal-header">
-                <h3><i class="fas fa-info-circle"></i> 信息</h3>
-                <button id="info-modal-close-icon" class="close-icon">&times;</button>
-            </div>
-            <div class="info-modal-body"><p id="info-modal-text">加载描述中...</p></div>
-            <div class="info-modal-footer"><button id="info-modal-close-btn" class="action-button modal-btn">知道了</button></div>
-        </div>
-    </div>
-    <div id="launcher-warning-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content card-block">
-            <h2 data-lang-key="warning_title">警告</h2>
-            <p data-lang-key="launcher_warning_text">此功能为实验性功能，如果您是初学者请勿设置，可能导致错误或图标无法渲染，因为启动器不支持或启动器失败并崩溃。</p>
-            <div class="button-group" style="justify-content: flex-end;">
-                <button id="launcher-warning-nevermind" class="action-button danger-button"><span data-lang-key="launcher_warning_nevermind">算了</span></button>
-                <button id="launcher-warning-accept" class="action-button"><span data-lang-key="launcher_warning_accept">我不是初学者</span></button>
-            </div>
-        </div>
-    </div>
-
-    <script src="/script.js"></script>
+    <script>
+        function goToScreen1() {
+            document.getElementById('screen1').classList.add('active');
+            document.getElementById('screen2').classList.remove('active');
+            document.getElementById('screen3').classList.remove('active');
+            document.getElementById('nickname-input').value = '';
+        }
+        function goToScreen2() {
+            document.getElementById('screen1').classList.remove('active');
+            document.getElementById('screen2').classList.add('active');
+            document.getElementById('screen3').classList.remove('active');
+        }
+        function goToScreen3() {
+            const nickname = document.getElementById('nickname-input').value;
+            if (nickname.trim() === '') {
+                alert('请输入好友昵称');
+                return;
+            }
+            document.getElementById('screen1').classList.remove('active');
+            document.getElementById('screen2').classList.remove('active');
+            document.getElementById('screen3').classList.add('active');
+        }
+    </script>
 </body>
 </html>
